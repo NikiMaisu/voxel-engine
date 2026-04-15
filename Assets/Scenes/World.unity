@@ -684,6 +684,7 @@ GameObject:
   - component: {fileID: 2121309693}
   - component: {fileID: 2121309692}
   - component: {fileID: 2121309691}
+  - component: {fileID: 2121309694}
   m_Layer: 0
   m_Name: FirstPersonCamera
   m_TagString: Untagged
@@ -700,7 +701,7 @@ Transform:
   m_GameObject: {fileID: 2121309689}
   serializedVersion: 2
   m_LocalRotation: {x: 0.2164396, y: 0, z: 0, w: 0.97629607}
-  m_LocalPosition: {x: 0, y: 2, z: -5}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -809,6 +810,19 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
+--- !u!114 &2121309694
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2121309689}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9eff4a4c743974ae384514bc8c2f3ae7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  lookSpeed: 3
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
