@@ -31,6 +31,5 @@ public class FirstPersonControl : MonoBehaviour
             transform.transform.Translate(new Vector3(0, (forwardSpeed * Time.deltaTime) * -1, 0));
         }
         
-        
     }
 }
