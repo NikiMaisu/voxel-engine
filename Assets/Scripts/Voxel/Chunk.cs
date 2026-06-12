@@ -1,45 +1,63 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Mathematics;
+using Random = UnityEngine.Random;
 
-[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class Chunk : MonoBehaviour
 {
     private const int Width = 32;
     private const int Height = 128;
     private const int Depth = 32;
     public int2 chunkCoordinate;
-    private Material blockMaterial;
+    private Material[] blockMaterials;
 
     private BlockType[,,] blocks;
     enum  BlockType
     {
         Empty = 0,
-        Bedrock = 1
+        Bedrock = 1,
+        Stone = 2,
+        Dirt = 3
     }
     
     void Start()
     {
         blocks = new BlockType[Width, Height, Depth];
-        blocks[0, 0, 0] = BlockType.Bedrock;
-        blocks[2, 0, 3] = BlockType.Bedrock;
-        blocks[5, 0, 1] = BlockType.Bedrock;
+        blockMaterials = new Material[System.Enum.GetValues(typeof(BlockType)).Length];
 
-        MeshFilter meshFilter = GetComponent<MeshFilter>();
-        MeshRenderer meshRenderer = GetComponent<MeshRenderer>();
-
-        Mesh mesh = new Mesh();
-        meshFilter.mesh = mesh;
-        
+        generateChunk();
+            
         // i want to use my texture ignore the fact that its sand
-         if (blockMaterial == null)
-             blockMaterial = Resources.Load<Material>("Material/Sand");
-         
-        meshRenderer.material = blockMaterial;
-        BuildBlockMesh(mesh);
+        blockMaterials[1] = Resources.Load<Material>("Material/Sand");
+        blockMaterials[2] = Resources.Load<Material>("Material/Stone");
+        blockMaterials[3] = Resources.Load<Material>("Material/Dirt");
+        
+        for (int i = 1; i < blockMaterials.Length; i++) {
+            GameObject child = new GameObject("Block_" + (BlockType)i);
+            child.transform.parent = this.transform;
+
+            MeshFilter meshFilter = child.AddComponent<MeshFilter>();
+            MeshRenderer meshRenderer = child.AddComponent<MeshRenderer>();
+            
+            Mesh mesh = new Mesh();
+            meshFilter.mesh = mesh;
+            meshRenderer.material = blockMaterials[i];
+            BuildBlockMesh(mesh, (BlockType)i);
+        }
     }
 
-    void BuildBlockMesh(Mesh mesh)
+    float GetStoneHeight(int x, int z) {
+        float height = Mathf.PerlinNoise(((x + chunkCoordinate.x * Width) * 0.04f), (z + chunkCoordinate.y * Depth) * 0.04f);
+        return height * 20 + 5;
+    }
+
+    float GetDirtThickness(int x, int z) {
+        float height = Mathf.PerlinNoise((((x + chunkCoordinate.x * Width) + 1000) * 0.07f), ((z + chunkCoordinate.y * Depth) * 0.07f));
+        return height * 8;
+    }
+    
+    
+    void BuildBlockMesh(Mesh mesh, BlockType blockType)
     {
         List<Vector3> vertices = new List<Vector3>();
         List<int> triangles = new List<int>();
@@ -71,23 +89,74 @@ public class Chunk : MonoBehaviour
             for (int y = 0; y < Height; y++) {
                 for (int z = 0; z < Depth; z++)
                 {
-                    if (blocks[x, y, z] == BlockType.Bedrock)
+                    if (blocks[x, y, z] == blockType)
                     {
-                        AddFace(new Vector3(0 + x, 0 + y, 1 + z), new Vector3(1 + x, 0 + y, 1 + z), new Vector3(1 + x, 1 + y, 1 + z), new Vector3(0 + x, 1 + y, 1 + z));
-                        AddFace(new Vector3(1 + x, 0 + y, 0 + z), new Vector3(0 + x, 0 + y, 0 + z), new Vector3(0 + x, 1 + y, 0 + z), new Vector3(1 + x, 1 + y, 0 + z));
-                        AddFace(new Vector3(0 + x, 0 + y, 0 + z), new Vector3(0 + x, 0 + y, 1 + z), new Vector3(0 + x, 1 + y, 1 + z), new Vector3(0 + x, 1 + y, 0 + z));
-                        AddFace(new Vector3(1 + x, 0 + y, 1 + z), new Vector3(1 + x, 0 + y, 0 + z), new Vector3(1 + x, 1 + y, 0 + z), new Vector3(1 + x, 1 + y, 1 + z));
-                        AddFace(new Vector3(0 + x, 0 + y, 0 + z), new Vector3(1 + x, 0 + y, 0 + z), new Vector3(1 + x, 0 + y, 1 + z), new Vector3(0 + x, 0 + y, 1 + z));
-                        AddFace(new Vector3(0 + x, 1 + y, 1 + z), new Vector3(1 + x, 1 + y, 1 + z), new Vector3(1 + x, 1 + y, 0 + z), new Vector3(0 + x, 1 + y, 0 + z));
+                        // Front (+z)
+                        if (!IsSolid(x, y, z + 1)) {
+                            AddFace(new Vector3(0 + x, 0 + y, 1 + z), new Vector3(1 + x, 0 + y, 1 + z), new Vector3(1 + x, 1 + y, 1 + z), new Vector3(0 + x, 1 + y, 1 + z));
+                        }
+                        // Back (-z)
+                        if (!IsSolid(x, y, z - 1)) {
+                            AddFace(new Vector3(1 + x, 0 + y, 0 + z), new Vector3(0 + x, 0 + y, 0 + z), new Vector3(0 + x, 1 + y, 0 + z), new Vector3(1 + x, 1 + y, 0 + z));
+                        }
+                        // Left (-x)
+                        if (!IsSolid(x - 1, y, z)) {
+                            AddFace(new Vector3(0 + x, 0 + y, 0 + z), new Vector3(0 + x, 0 + y, 1 + z), new Vector3(0 + x, 1 + y, 1 + z), new Vector3(0 + x, 1 + y, 0 + z));
+                        }
+                        // Right (+x)
+                        if (!IsSolid(x + 1, y, z)) {
+                            AddFace(new Vector3(1 + x, 0 + y, 1 + z), new Vector3(1 + x, 0 + y, 0 + z), new Vector3(1 + x, 1 + y, 0 + z), new Vector3(1 + x, 1 + y, 1 + z));
+                        }
+                        // Bottom (-y)
+                        if (!IsSolid(x, y - 1, z)) {
+                            AddFace(new Vector3(0 + x, 0 + y, 0 + z), new Vector3(1 + x, 0 + y, 0 + z), new Vector3(1 + x, 0 + y, 1 + z), new Vector3(0 + x, 0 + y, 1 + z));
+                        }
+                        // Top (+y)
+                        if (!IsSolid(x, y + 1, z)) {
+                            AddFace(new Vector3(0 + x, 1 + y, 1 + z), new Vector3(1 + x, 1 + y, 1 + z), new Vector3(1 + x, 1 + y, 0 + z), new Vector3(0 + x, 1 + y, 0 + z));
+                        }
                     }
                 }
             }
         }
+        
+        mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         
         mesh.vertices = vertices.ToArray();
         mesh.triangles = triangles.ToArray();
         mesh.uv = uvs.ToArray();
         
         mesh.RecalculateNormals();
+    }
+
+    bool IsSolid(int x, int y, int z) {
+        if (0 <= x && x < Width && 0 <= y && y < Height && 0 <= z && z < Depth) {
+            return blocks[x, y, z] != BlockType.Empty;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
+    void generateChunk() {
+        for (int x = 0; x < Width; x++) {
+            for (int z = 0; z < Depth; z++) {
+                int bedrockHeight = Random.Range(1, 4);
+                int stoneHeight = (int)GetStoneHeight(x, z);
+                int dirtThickness = (int)GetDirtThickness(x, z);
+                for (int y = 0; y < bedrockHeight; y++) {
+                    blocks[x, y, z] = BlockType.Bedrock;
+                }
+                for (int y = bedrockHeight; y < stoneHeight; y++) {
+                    blocks[x, y, z] = BlockType.Stone;
+                }
+
+                for (int y = stoneHeight; y < (stoneHeight + dirtThickness); y++)
+                {
+                    blocks[x, y, z] = BlockType.Dirt;
+                }
+            }
+        }
     }
 }
