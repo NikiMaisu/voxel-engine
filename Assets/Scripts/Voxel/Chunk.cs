@@ -24,9 +24,10 @@ public class Chunk : MonoBehaviour
     {
         blocks = new BlockType[Width, Height, Depth];
         blockMaterials = new Material[System.Enum.GetValues(typeof(BlockType)).Length];
-
+        
+        transform.position = new Vector3(chunkCoordinate.x * Width, 0, chunkCoordinate.y * Depth);
         generateChunk();
-            
+        
         // i want to use my texture ignore the fact that its sand
         blockMaterials[1] = Resources.Load<Material>("Material/Sand");
         blockMaterials[2] = Resources.Load<Material>("Material/Stone");
@@ -34,7 +35,7 @@ public class Chunk : MonoBehaviour
         
         for (int i = 1; i < blockMaterials.Length; i++) {
             GameObject child = new GameObject("Block_" + (BlockType)i);
-            child.transform.parent = this.transform;
+            child.transform.SetParent(this.transform, false); // SetParent(false) keeps the block's local position instead of its world position
 
             MeshFilter meshFilter = child.AddComponent<MeshFilter>();
             MeshRenderer meshRenderer = child.AddComponent<MeshRenderer>();

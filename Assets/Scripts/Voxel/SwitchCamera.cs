@@ -23,12 +23,16 @@ public class SwitchCamera : MonoBehaviour
     }
     void Fpc()
     {
+        ThirdPersonCamera.tag = "Untagged";
+        FirstPersonCamera.tag = "MainCamera";
         FirstPersonCamera.SetActive(true);
         ThirdPersonCamera.SetActive(false);
     }
 
     void Tpc()
     {
+        FirstPersonCamera.tag = "Untagged";
+        ThirdPersonCamera.tag = "MainCamera";
         FirstPersonCamera.SetActive(false);
         ThirdPersonCamera.SetActive(true);
     }
@@ -37,6 +41,7 @@ public class SwitchCamera : MonoBehaviour
     {
         FirstPersonCamera = GameObject.Find("FirstPersonCamera");
         ThirdPersonCamera = GameObject.Find("ThirdPersonCamera");
+        FirstPersonCamera.tag = "MainCamera";
     }
     void Update()
     {
