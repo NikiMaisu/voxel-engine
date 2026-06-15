@@ -46,6 +46,15 @@ public class Chunk : MonoBehaviour
             BuildBlockMesh(mesh, (BlockType)i);
         }
         
+        GameObject waterChild = new GameObject("Water");
+        waterChild.transform.SetParent(this.transform, false);
+        MeshFilter waterMeshFilter = waterChild.AddComponent<MeshFilter>();
+        MeshRenderer waterMeshRenderer = waterChild.AddComponent<MeshRenderer>();
+        Mesh waterMesh = generateTessellatedPlane(16, 16);
+        waterMeshFilter.mesh = waterMesh;
+        waterChild.transform.localPosition = new Vector3(0, 14.75f, 0);
+        waterMeshRenderer.material = Resources.Load<Material>("Material/Water");
+        
         if (chunkManager != null)
             chunkManager.RebuildNeighbours(chunkCoordinate);
     }
@@ -199,4 +208,54 @@ public class Chunk : MonoBehaviour
             }
         }
     }
+
+    Mesh generateTessellatedPlane(int xSquares, int ySquares)
+    {
+        List<Vector3> vertices = new List<Vector3>();
+        List<int> triangles = new List<int>();
+        List<Vector2> uvs = new List<Vector2>();
+
+        for (int j = 0; j <= ySquares; j++)
+        {
+            for (int i = 0; i <= xSquares; i++)
+            {
+                float x = (float)i / xSquares * Width;
+                float z = (float)j / ySquares * Depth;
+                vertices.Add(new Vector3(x, 0, z));
+                uvs.Add(new Vector2((float)i / xSquares, (float)j / ySquares));
+            }
+        }
+
+        for (int j = 0; j <= ySquares - 1; j++)
+        {
+            for (int i = 0; i <= xSquares - 1; i++)
+            {
+                int bl = j * (xSquares + 1) + i;
+                int br = j * (xSquares + 1) + i + 1;
+                int tl = (j + 1) * (xSquares + 1) + i;
+                int tr = (j + 1) * (xSquares + 1) + i + 1;
+
+                triangles.Add(bl);
+                triangles.Add(tl);
+                triangles.Add(br);
+                
+                triangles.Add(tl);
+                triangles.Add(tr);
+                triangles.Add(br);
+            }
+        }
+        
+        Mesh mesh = new Mesh();
+        
+        mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+        
+        mesh.vertices = vertices.ToArray();
+        mesh.triangles = triangles.ToArray();
+        mesh.uv = uvs.ToArray();
+        
+        mesh.RecalculateNormals();
+
+        return mesh;
+    }
+    
 }
