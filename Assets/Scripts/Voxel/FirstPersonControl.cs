@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 public class FirstPersonControl : MonoBehaviour
 {
 
-    public float forwardSpeed = 11f;
+    public float forwardSpeed = 30f;
     
     void Start()
     {

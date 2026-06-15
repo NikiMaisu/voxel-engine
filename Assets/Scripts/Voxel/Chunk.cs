@@ -10,7 +10,7 @@ public class Chunk : MonoBehaviour
     private const int Depth = 32;
     public int2 chunkCoordinate;
     private Material[] blockMaterials;
-
+    public ChunkManager chunkManager;
     private BlockType[,,] blocks;
     enum  BlockType
     {
@@ -31,7 +31,7 @@ public class Chunk : MonoBehaviour
         // i want to use my texture ignore the fact that its sand
         blockMaterials[1] = Resources.Load<Material>("Material/Sand");
         blockMaterials[2] = Resources.Load<Material>("Material/Stone");
-        blockMaterials[3] = Resources.Load<Material>("Material/Dirt");
+        blockMaterials[3] = Resources.Load<Material>("Material/Sand");
         
         for (int i = 1; i < blockMaterials.Length; i++) {
             GameObject child = new GameObject("Block_" + (BlockType)i);
@@ -45,6 +45,9 @@ public class Chunk : MonoBehaviour
             meshRenderer.material = blockMaterials[i];
             BuildBlockMesh(mesh, (BlockType)i);
         }
+        
+        if (chunkManager != null)
+            chunkManager.RebuildNeighbours(chunkCoordinate);
     }
 
     float GetStoneHeight(int x, int z) {
@@ -131,12 +134,48 @@ public class Chunk : MonoBehaviour
     }
 
     bool IsSolid(int x, int y, int z) {
-        if (0 <= x && x < Width && 0 <= y && y < Height && 0 <= z && z < Depth) {
+        if (y < 0 || y >= Height) return true;
+        
+        if (x >= 0 && x < Width && z >= 0 && z < Depth) {
             return blocks[x, y, z] != BlockType.Empty;
         }
-        else
-        {
-            return false;
+
+        int2 neighbourCoordinate = chunkCoordinate;
+        int localX = x;
+        int localZ = z;
+
+        if (x < 0) {
+            neighbourCoordinate += new int2(-1, 0);
+            localX = x + Width;
+        } else if (x >= Width) {
+            neighbourCoordinate += new int2(1, 0);
+            localX = x - Width;
+        }
+
+        if (z < 0) {
+            neighbourCoordinate += new int2(0, -1);
+            localZ = z + Depth;
+        } else if (z >= Depth) {
+            neighbourCoordinate += new int2(0, 1);
+            localZ = z - Depth;
+        }
+
+        if (chunkManager != null && chunkManager.loadedChunks.TryGetValue(neighbourCoordinate, out Chunk neighbour)) {
+            if (neighbour.blocks == null) return true;
+            return neighbour.blocks[localX, y, localZ] != BlockType.Empty;
+        }
+        
+        return true;
+    }
+    
+    public void RebuildMesh() {
+        for (int i = 1; i < blockMaterials.Length; i++) {
+            Transform existing = transform.Find("Block_" + (BlockType)i);
+            if (existing != null) {
+                Mesh mesh = new Mesh();
+                existing.GetComponent<MeshFilter>().mesh = mesh;
+                BuildBlockMesh(mesh, (BlockType)i);
+            }
         }
     }
     
