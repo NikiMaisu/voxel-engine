@@ -52,7 +52,7 @@ public class Chunk : MonoBehaviour
         MeshRenderer waterMeshRenderer = waterChild.AddComponent<MeshRenderer>();
         Mesh waterMesh = generateTessellatedPlane(16, 16);
         waterMeshFilter.mesh = waterMesh;
-        waterChild.transform.localPosition = new Vector3(0, 14.75f, 0);
+        waterChild.transform.localPosition = new Vector3(0, 11.75f, 0);
         waterMeshRenderer.material = Resources.Load<Material>("Material/Water");
         
         if (chunkManager != null)
