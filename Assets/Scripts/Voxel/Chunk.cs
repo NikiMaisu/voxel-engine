@@ -17,7 +17,9 @@ public class Chunk : MonoBehaviour
         Empty = 0,
         Bedrock = 1,
         Stone = 2,
-        Dirt = 3
+        Dirt = 3,
+        Grass = 4,
+        Obsidian = 5
     }
     
     void Start()
@@ -28,10 +30,10 @@ public class Chunk : MonoBehaviour
         transform.position = new Vector3(chunkCoordinate.x * Width, 0, chunkCoordinate.y * Depth);
         generateChunk();
         
-        // i want to use my texture ignore the fact that its sand
         blockMaterials[1] = Resources.Load<Material>("Material/Sand");
         blockMaterials[2] = Resources.Load<Material>("Material/Stone");
         blockMaterials[3] = Resources.Load<Material>("Material/Sand");
+        blockMaterials[5] = Resources.Load<Material>("Material/Obsidian");
         
         for (int i = 1; i < blockMaterials.Length; i++) {
             GameObject child = new GameObject("Block_" + (BlockType)i);
@@ -204,6 +206,27 @@ public class Chunk : MonoBehaviour
                 for (int y = stoneHeight; y < (stoneHeight + dirtThickness); y++)
                 {
                     blocks[x, y, z] = BlockType.Dirt;
+                }
+            }
+        }
+        
+        if (chunkCoordinate.x % 10 == 0 && chunkCoordinate.y % 10 == 0)
+        {
+            int surfaceHeight = (int)GetStoneHeight(14, 14) + (int)GetDirtThickness(14, 14);
+            GeneratePortal(14, surfaceHeight + 1, 14);
+        }
+    }
+
+    void GeneratePortal(int baseX, int baseY, int baseZ)
+    {
+        for (int y = 0; y < 5; y++)
+        {
+            for (int x = 0; x < 4; x++)
+            {
+                bool isFrame = x == 0 || x == 3 || y == 0 || y == 4;
+                if (isFrame)
+                {
+                    blocks[baseX + x, baseY + y, baseZ] = BlockType.Obsidian;
                 }
             }
         }
