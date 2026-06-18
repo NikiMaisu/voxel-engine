@@ -32,7 +32,8 @@ public class Chunk : MonoBehaviour
         
         blockMaterials[1] = Resources.Load<Material>("Material/Sand");
         blockMaterials[2] = Resources.Load<Material>("Material/Stone");
-        blockMaterials[3] = Resources.Load<Material>("Material/Sand");
+        blockMaterials[3] = Resources.Load<Material>("Material/Dirt");
+        blockMaterials[4] = Resources.Load<Material>("Material/Grass");
         blockMaterials[5] = Resources.Load<Material>("Material/Obsidian");
         
         for (int i = 1; i < blockMaterials.Length; i++) {
@@ -180,6 +181,7 @@ public class Chunk : MonoBehaviour
     }
     
     public void RebuildMesh() {
+        if (blockMaterials == null) return;
         for (int i = 1; i < blockMaterials.Length; i++) {
             Transform existing = transform.Find("Block_" + (BlockType)i);
             if (existing != null) {
@@ -207,6 +209,11 @@ public class Chunk : MonoBehaviour
                 {
                     blocks[x, y, z] = BlockType.Dirt;
                 }
+                int dirtTop = stoneHeight + dirtThickness - 1;
+                if (dirtThickness > 0 && dirtTop > 13)
+                {
+                    blocks[x, dirtTop, z] = BlockType.Grass;
+                }
             }
         }
         
@@ -230,6 +237,17 @@ public class Chunk : MonoBehaviour
                 }
             }
         }
+        
+        GameObject portalFX = new GameObject("PortalFX");
+        portalFX.transform.SetParent(this.transform, false);
+        portalFX.transform.localPosition = new Vector3(baseX + 0.75f, baseY + 1, baseZ + 0.5f);
+        portalFX.transform.localRotation = Quaternion.Euler(-90, 0, 0);
+        portalFX.transform.localScale = new Vector3(2.75f/32f, 2.25f/32f, 3.25f/32f);
+
+        MeshFilter pf = portalFX.AddComponent<MeshFilter>();
+        MeshRenderer pr = portalFX.AddComponent<MeshRenderer>();
+        pf.mesh = generateTessellatedPlane(10, 15);
+        pr.material = Resources.Load<Material>("Material/Portal");
     }
 
     Mesh generateTessellatedPlane(int xSquares, int ySquares)

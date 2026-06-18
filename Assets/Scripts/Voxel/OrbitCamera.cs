@@ -16,23 +16,9 @@ public class OrbitCamera : MonoBehaviour
 
     void Update()
     {
-        //zoom stuff
         transform.Translate(Vector3.forward * Input.GetAxis("Mouse ScrollWheel"));
-
-        transform.RotateAround(playerBody.transform.position, new Vector2(Input.GetAxisRaw("Mouse Y"), Input.GetAxisRaw("Mouse X")), lookSpeed * Time.deltaTime);
-        
-        // if (Input.GetKey(KeyCode.Escape)) {Cursor.lockState = CursorLockMode.None;}
-        //
-        // Vector2 mouseChange = new Vector2(Input.GetAxisRaw("Mouse X") * lookSpeed * Time.deltaTime, Input.GetAxisRaw("Mouse Y") * lookSpeed * Time.deltaTime);
-        //
-        // mouseDirection += mouseChange;
-        // mouseDirection.y = Mathf.Clamp(mouseDirection.y, -90f, 90f);
-        //
-        // this.transform.localRotation = Quaternion.AngleAxis(-mouseDirection.y, Vector3.right);
-        //
-        // playerBody.localRotation = Quaternion.AngleAxis(mouseDirection.x, Vector3.up);
-        //
+        transform.RotateAround(playerBody.position, Vector3.up, Input.GetAxisRaw("Mouse X") * lookSpeed * Time.deltaTime);
+        transform.RotateAround(playerBody.position, transform.right, -Input.GetAxisRaw("Mouse Y") * lookSpeed * Time.deltaTime);
         transform.LookAt(playerBody);
-
     }
 }
