@@ -146,6 +146,8 @@ public class Chunk : MonoBehaviour
     }
 
     bool IsSolid(int x, int y, int z) {
+        // test to show bottom layer, will leave it as proof of bedrock generation, but can be removed for further optimisation
+        if (y < 0) return false;
         if (y < 0 || y >= Height) return true;
         
         if (x >= 0 && x < Width && z >= 0 && z < Depth) {
@@ -217,6 +219,8 @@ public class Chunk : MonoBehaviour
             }
         }
         
+        GenerateRavine();
+        
         if (chunkCoordinate.x % 10 == 0 && chunkCoordinate.y % 10 == 0)
         {
             int surfaceHeight = (int)GetStoneHeight(14, 14) + (int)GetDirtThickness(14, 14);
@@ -248,6 +252,36 @@ public class Chunk : MonoBehaviour
         MeshRenderer pr = portalFX.AddComponent<MeshRenderer>();
         pf.mesh = generateTessellatedPlane(10, 15);
         pr.material = Resources.Load<Material>("Material/Portal");
+    }
+    
+    void GenerateRavine()
+    {
+        //20% chance to gen a ravine
+        if (Random.Range(0f, 1f) > 0.05f) return;
+
+        // random position
+        int ravineX = Random.Range(4, Width - 4);
+        int ravineZ = Random.Range(4, Depth - 4);
+        int ravineWidth = Random.Range(2, 5);
+        int ravineFloor = Random.Range(1, 4);
+
+        int surfaceHeight = (int)GetStoneHeight(ravineX, ravineZ) + (int)GetDirtThickness(ravineX, ravineZ);
+
+        for (int x = ravineX - ravineWidth; x <= ravineX + ravineWidth; x++)
+        {
+            for (int z = ravineZ - ravineWidth; z <= ravineZ + ravineWidth; z++)
+            {
+                float dist = Vector2.Distance(new Vector2(x, z), new Vector2(ravineX, ravineZ));
+                if (dist > ravineWidth) continue;
+
+                if (x < 0 || x >= Width || z < 0 || z >= Depth) continue;
+
+                for (int y = ravineFloor; y <= surfaceHeight; y++)
+                {
+                    blocks[x, y, z] = BlockType.Empty;
+                }
+            }
+        }
     }
 
     Mesh generateTessellatedPlane(int xSquares, int ySquares)
