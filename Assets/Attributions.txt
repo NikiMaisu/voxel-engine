@@ -1,0 +1,7 @@
+I drew all the assets myself except the sky, which is free to use
+
+https://assetstore.unity.com/packages/2d/textures-materials/sky/skybox-series-free-103633
+
+/SkySeries_by_Avionx
+
+Standard Unity Asset Licenense
